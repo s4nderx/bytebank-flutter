@@ -11,7 +11,7 @@ class ByteBankApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: FormularioTransferencia(),
+        body: ListaTransferencias(),
       ),
     );
   }
@@ -19,7 +19,7 @@ class ByteBankApp extends StatelessWidget {
 
 class FormularioTransferencia extends StatelessWidget {
   final TextEditingController _controllerCampoNumeroConta =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _controllerCampoValor = TextEditingController();
 
   FormularioTransferencia({Key? key}) : super(key: key);
@@ -28,7 +28,7 @@ class FormularioTransferencia extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Criando Transferências'),
+        title: const Text('Criando Transferências'),
       ),
       body: Column(
         children: [
@@ -42,22 +42,20 @@ class FormularioTransferencia extends StatelessWidget {
               dica: 'R\$ 0000.00',
               icone: Icons.monetization_on),
           ElevatedButton(
-              onPressed: () => _criarTransacao(),
+              onPressed: () => _criarTransacao(context),
               child: const Text('Confirmar'))
         ],
       ),
     );
   }
 
-  void _criarTransacao() {
-    final int? numeroConta =
-        int.tryParse(_controllerCampoNumeroConta.text);
-    final double? valor =
-        double.tryParse(_controllerCampoValor.text);
+  void _criarTransacao(BuildContext context) {
+    final int? numeroConta = int.tryParse(_controllerCampoNumeroConta.text);
+    final double? valor = double.tryParse(_controllerCampoValor.text);
     if (numeroConta != null && valor != null) {
       final Transferencia transferenciaCriada =
-          Transferencia(valor, numeroConta);
-      debugPrint('$transferenciaCriada');
+      Transferencia(valor, numeroConta);
+      Navigator.pop(context, transferenciaCriada);
     }
   }
 }
@@ -68,12 +66,11 @@ class Editor extends StatelessWidget {
   final String _dica;
   final IconData? icone;
 
-  const Editor(
-      {Key? key,
-      required controlador,
-      required rotulo,
-      required dica,
-      this.icone})
+  const Editor({Key? key,
+    required controlador,
+    required rotulo,
+    required dica,
+    this.icone})
       : _controlador = controlador,
         _rotulo = rotulo,
         _dica = dica,
@@ -97,23 +94,33 @@ class Editor extends StatelessWidget {
 }
 
 class ListaTransferencias extends StatelessWidget {
-  const ListaTransferencias({Key? key}) : super(key: key);
+
+  final _transferencias = <Transferencia>[];
 
   @override
   Widget build(BuildContext context) {
+    _transferencias.add(Transferencia(223132.0, 777));
+    _transferencias.add(Transferencia(223132.0, 777));
+    _transferencias.add(Transferencia(223132.0, 777));
+    _transferencias.add(Transferencia(223132.0, 777));
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transferências'),
       ),
-      body: Column(
-        children: [
-          ItemTransferencia(transferencia: Transferencia(1000.0, 999)),
-          ItemTransferencia(transferencia: Transferencia(1000.1, 991)),
-          ItemTransferencia(transferencia: Transferencia(1000.2, 992)),
-        ],
-      ),
+      body: ListView.builder(itemBuilder: (context, index) {
+        var transferencia = _transferencias[index];
+        return ItemTransferencia(transferencia: transferencia);
+      }, itemCount: _transferencias.length,),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          final Future<Transferencia?> push =
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return FormularioTransferencia();
+          }));
+          push.then((value) {
+            _transferencias.add(value!);
+          });
+        },
         child: const Icon(Icons.add),
       ),
     );
@@ -131,10 +138,10 @@ class ItemTransferencia extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
         child: ListTile(
-      leading: const Icon(Icons.monetization_on),
-      title: Text(_transferencia.valor.toString()),
-      subtitle: Text(_transferencia.numeroConta.toString()),
-    ));
+          leading: const Icon(Icons.monetization_on),
+          title: Text(_transferencia.valor.toString()),
+          subtitle: Text(_transferencia.numeroConta.toString()),
+        ));
   }
 }
 
