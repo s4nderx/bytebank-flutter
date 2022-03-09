@@ -32,42 +32,65 @@ class FormularioTransferencia extends StatelessWidget {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: TextField(
-              controller: _controllerCampoValor,
-              style: TextStyle(fontSize: 16),
-              decoration:
-                  InputDecoration(labelText: 'Valor', hintText: 'R\$ 0000.00'),
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: TextField(
-              controller: _controllerCampoNumeroConta,
-              style: const TextStyle(fontSize: 16),
-              decoration: const InputDecoration(
-                  labelText: 'Numero da conta',
-                  hintText: '0000-0',
-                  icon: Icon(Icons.monetization_on)),
-              keyboardType: TextInputType.number,
-            ),
-          ),
+          Editor(
+              controlador: _controllerCampoNumeroConta,
+              rotulo: 'Numero da conta',
+              dica: '0000-0'),
+          Editor(
+              controlador: _controllerCampoValor,
+              rotulo: 'Valor',
+              dica: 'R\$ 0000.00',
+              icone: Icons.monetization_on),
           ElevatedButton(
-              onPressed: () {
-                final int? numeroConta =
-                    int.tryParse(_controllerCampoNumeroConta.text);
-                final double? valor =
-                    double.tryParse(_controllerCampoValor.text);
-                if (numeroConta != null && valor != null) {
-                  final Transferencia transferenciaCriada =
-                      Transferencia(valor, numeroConta);
-                  debugPrint('$transferenciaCriada');
-                }
-              },
+              onPressed: () => _criarTransacao(),
               child: const Text('Confirmar'))
         ],
+      ),
+    );
+  }
+
+  void _criarTransacao() {
+    final int? numeroConta =
+        int.tryParse(_controllerCampoNumeroConta.text);
+    final double? valor =
+        double.tryParse(_controllerCampoValor.text);
+    if (numeroConta != null && valor != null) {
+      final Transferencia transferenciaCriada =
+          Transferencia(valor, numeroConta);
+      debugPrint('$transferenciaCriada');
+    }
+  }
+}
+
+class Editor extends StatelessWidget {
+  final TextEditingController _controlador;
+  final String _rotulo;
+  final String _dica;
+  final IconData? icone;
+
+  const Editor(
+      {Key? key,
+      required controlador,
+      required rotulo,
+      required dica,
+      this.icone})
+      : _controlador = controlador,
+        _rotulo = rotulo,
+        _dica = dica,
+        super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: TextField(
+        controller: _controlador,
+        style: const TextStyle(fontSize: 16),
+        decoration: InputDecoration(
+            labelText: _rotulo,
+            hintText: _dica,
+            icon: icone != null ? Icon(icone) : null),
+        keyboardType: TextInputType.number,
       ),
     );
   }
