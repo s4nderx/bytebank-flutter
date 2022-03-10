@@ -1,60 +1,70 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const ByteBankApp());
+  runApp(ByteBankApp());
 }
 
 class ByteBankApp extends StatelessWidget {
-  const ByteBankApp({Key? key}) : super(key: key);
+  final ThemeData theme = ThemeData();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: ListaTransferencias(),
-      ),
-    );
+        theme: theme.copyWith(
+            primaryColor: Colors.green[900],
+            colorScheme:
+                theme.colorScheme.copyWith(secondary: Colors.blueAccent[700]),
+            buttonTheme: ButtonThemeData(
+                buttonColor: Colors.blueAccent[700],
+                textTheme: ButtonTextTheme.primary)),
+        home: ListaTransferencias());
   }
 }
 
-class FormularioTransferencia extends StatelessWidget {
-  final TextEditingController _controllerCampoNumeroConta =
-  TextEditingController();
+class FormularioTransferencia extends StatefulWidget {
+  final TextEditingController _controllerCampoConta = TextEditingController();
   final TextEditingController _controllerCampoValor = TextEditingController();
 
-  FormularioTransferencia({Key? key}) : super(key: key);
+  @override
+  State<StatefulWidget> createState() {
+    return FormularioTransferenciaState();
+  }
+}
 
+class FormularioTransferenciaState extends State<FormularioTransferencia> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Criando Transferências'),
       ),
-      body: Column(
-        children: [
-          Editor(
-              controlador: _controllerCampoNumeroConta,
-              rotulo: 'Numero da conta',
-              dica: '0000-0'),
-          Editor(
-              controlador: _controllerCampoValor,
-              rotulo: 'Valor',
-              dica: 'R\$ 0000.00',
-              icone: Icons.monetization_on),
-          ElevatedButton(
-              onPressed: () => _criarTransacao(context),
-              child: const Text('Confirmar'))
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Editor(
+                controlador: widget._controllerCampoConta,
+                rotulo: 'Numero da conta',
+                dica: '0000-0'),
+            Editor(
+                controlador: widget._controllerCampoValor,
+                rotulo: 'Valor',
+                dica: 'R\$ 0000.00',
+                icone: Icons.monetization_on),
+            ElevatedButton(
+                onPressed: () => _criarTransacao(context),
+                child: const Text('Confirmar'))
+          ],
+        ),
       ),
     );
   }
 
   void _criarTransacao(BuildContext context) {
-    final int? numeroConta = int.tryParse(_controllerCampoNumeroConta.text);
-    final double? valor = double.tryParse(_controllerCampoValor.text);
+    final int? numeroConta = int.tryParse(widget._controllerCampoConta.text);
+    final double? valor = double.tryParse(widget._controllerCampoValor.text);
     if (numeroConta != null && valor != null) {
       final Transferencia transferenciaCriada =
-      Transferencia(valor, numeroConta);
+          Transferencia(valor, numeroConta);
       Navigator.pop(context, transferenciaCriada);
     }
   }
@@ -66,11 +76,12 @@ class Editor extends StatelessWidget {
   final String _dica;
   final IconData? icone;
 
-  const Editor({Key? key,
-    required controlador,
-    required rotulo,
-    required dica,
-    this.icone})
+  const Editor(
+      {Key? key,
+      required controlador,
+      required rotulo,
+      required dica,
+      this.icone})
       : _controlador = controlador,
         _rotulo = rotulo,
         _dica = dica,
@@ -93,32 +104,41 @@ class Editor extends StatelessWidget {
   }
 }
 
-class ListaTransferencias extends StatelessWidget {
+class ListaTransferencias extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return ListaTransferenciaState();
+  }
+}
 
+class ListaTransferenciaState extends State<ListaTransferencias> {
   final _transferencias = <Transferencia>[];
 
   @override
   Widget build(BuildContext context) {
-    _transferencias.add(Transferencia(223132.0, 777));
-    _transferencias.add(Transferencia(223132.0, 777));
-    _transferencias.add(Transferencia(223132.0, 777));
-    _transferencias.add(Transferencia(223132.0, 777));
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transferências'),
       ),
-      body: ListView.builder(itemBuilder: (context, index) {
-        var transferencia = _transferencias[index];
-        return ItemTransferencia(transferencia: transferencia);
-      }, itemCount: _transferencias.length,),
+      body: ListView.builder(
+        itemBuilder: (context, index) {
+          var transferencia = _transferencias[index];
+          return ItemTransferencia(transferencia: transferencia);
+        },
+        itemCount: _transferencias.length,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           final Future<Transferencia?> push =
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
             return FormularioTransferencia();
           }));
           push.then((value) {
-            _transferencias.add(value!);
+            setState(() {
+              if (null != value) {
+                _transferencias.add(value);
+              }
+            });
           });
         },
         child: const Icon(Icons.add),
@@ -138,10 +158,10 @@ class ItemTransferencia extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
         child: ListTile(
-          leading: const Icon(Icons.monetization_on),
-          title: Text(_transferencia.valor.toString()),
-          subtitle: Text(_transferencia.numeroConta.toString()),
-        ));
+      leading: const Icon(Icons.monetization_on),
+      title: Text(_transferencia.valor.toString()),
+      subtitle: Text(_transferencia.numeroConta.toString()),
+    ));
   }
 }
 
